@@ -1,12 +1,12 @@
 import React, { Component, Fragment } from 'react';
-import Welcome from '../components/home/Welcome/Welcome';
+import Table from '../components/home/Table/Table';
 
 export default class home extends Component {
 
   render() {
     return (
       <Fragment>
-        <Welcome/>
+        <Table/>
       </Fragment>
     );
   }

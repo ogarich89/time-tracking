@@ -1,0 +1,98 @@
+@import "mixins";
+@import "variables";
+
+.table {
+  height: 100%;
+  width: vw(960px, $desktop);
+  margin: 0 auto;
+  padding: vw(20px, $desktop) 0;
+  .list {
+    margin-bottom: vw(20px, $desktop);
+    li {
+      color: $text;
+      margin-bottom: vw(10px, $desktop);
+      font-size: vw(16px, $desktop);
+      span {
+        color: #000;
+        font-size: vw(18px, $desktop);
+      }
+    }
+  }
+  .dashboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: vw(10px, $desktop) 0;
+    button {
+      font-size: vw(16px, $desktop);
+      font-family: RobotoSlab, sans-serif;
+      cursor: pointer;
+      color: $text;
+      &:hover {
+        color: #000;
+      }
+      @include respond-to(laptop) {
+        font-size: vw(16px, $laptop);
+      }
+      @include respond-to(tablet) {
+        font-size: vw(16px, $tablet);
+      }
+      @include respond-to(mobile) {
+        font-size: vw(16px, $mobile);
+      }
+    }
+  }
+  table {
+    width: 100%;
+    border-spacing: 1px;
+    border-collapse: separate;
+    thead {
+      text-align: left;
+      background-color: #cbc9c9;
+      th {
+        padding: vw(10px, $desktop);
+      }
+    }
+    tbody {
+      background-color: #f1f1f1;
+      tr {
+        &.weekend {
+          background-color: #e0dad6;
+        }
+        &.current-date {
+          background-color: #dcdcdc;
+        }
+        td {
+          padding: 0;
+          vertical-align: middle;
+          span {
+            padding: vw(5px, $desktop) vw(10px, $desktop);
+            cursor: default;
+          }
+          input[type="text"] {
+            width: 100%;
+            padding: vw(5px, $desktop) vw(10px, $desktop);
+            background-color: transparent;
+            font-family: RobotoSlab, sans-serif;
+            font-size: vw(16px, $desktop);
+          }
+          label {
+            width: 100%;
+            display: block;
+            cursor: pointer;
+            input[type="checkbox"] {
+              margin: 0 0 0 vw(10px, $desktop);
+              width: vw(16px, $desktop);
+              height: vw(16px, $desktop);
+            }
+          }
+        }
+      }
+    }
+    tfoot {
+      td {
+        padding: vw(15px, $desktop) vw(10px, $desktop);
+      }
+    }
+  }
+}
