@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import style from './Table.scss';
-import { getSettings, getClone } from './utils';
+import { getSettings, getClone, updateSettings, getLateHours } from './utils';
 import cx from 'classnames';
 import IMask from 'imask';
 import moment from 'moment';
@@ -58,21 +58,24 @@ class Table extends Component {
   }
 
   setValue({ target }, index) {
-    const { datesInMonth } = this.state;
-    const clone = getClone(datesInMonth);
-    clone[index][target.name] = target.type === 'text' ? target.value : target.checked;
-    this.setState({ datesInMonth: clone });
+    const { month, year, isFuture } = this.state;
+    const dates = getClone(this.state.dates);
+    dates[index][target.name] = target.type === 'text' ? target.value : target.checked;
+    this.setState({
+      ...updateSettings(dates, { id: `${month}.${year}`, isFuture })
+    });
   }
 
   render () {
     const {
-      datesInMonth,
+      dates,
       amountHours,
       currentHours,
       nameMonth,
       months,
       month,
-      year
+      year,
+      workedHours = '0.0'
     } = this.state;
     return (
       <section className={style.table}>
@@ -80,7 +83,9 @@ class Table extends Component {
           <li>Месяц: <span>{ nameMonth }</span></li>
           <li>Должно быть за месяц: <span>{ amountHours } ч.</span></li>
           <li>Должно быть на текущий момент: <span>{ currentHours } ч.</span></li>
-          <li>Отработано: <span>0 ч.</span></li>
+          <li>Отработано: <span className={cx(style.green, {
+            [style.red]: workedHours < currentHours
+          })}>{ workedHours } ч.</span></li>
         </ul>
         <div className={style.dashboard}>
           <div className={style.selectContainer}>
@@ -115,38 +120,63 @@ class Table extends Component {
           </thead>
           <tbody>
             {
-              datesInMonth.map((item, index) => {
-                const { date, isCurrent, isWeekend, isHoliday = false, isTimeOff = false } = item;
+              dates.map((item, index) => {
+                const {
+                  date,
+                  isCurrent,
+                  isWeekend,
+                  isHoliday = false,
+                  isTimeOff = false,
+                  lunch_to,
+                  lunch_from
+                } = item;
+                const late = getLateHours({ lunch_to, lunch_from });
                 return (
                   <tr key={date}
                     className={cx({
                       [style.currentDate]: isCurrent,
-                      [style.weekend]: isWeekend
+                      [style.weekend]: isWeekend,
+                      [style.timeoff]: isTimeOff
                     })}>
                     <td><span>{date}</span></td>
                     <td>
-                      <label>
-                        <input type="checkbox" name="isHoliday" checked={isHoliday} onChange={event => ::this.setValue(event, index)}/>
-                      </label>
+                      {
+                        !isWeekend ?
+                          <label>
+                            <input type="checkbox" name="isHoliday" checked={isHoliday} onChange={event => ::this.setValue(event, index)}/>
+                          </label> : null
+                      }
                     </td>
                     {
-                      ['checkIn', 'from', 'to', 'checkOut', 'late'].map(name => (
+                      ['checkIn', 'lunch_from', 'lunch_to', 'checkOut'].map(name => (
                         <td key={name}>
                           <input
                             className="js-input"
                             type="text"
                             name={name}
                             value={item[name] || ''}
+                            onInput={event => ::this.setValue(event, index)}
                             onChange={event => ::this.setValue(event, index)}
+                            onPaste={event => ::this.setValue(event, index)}
                             maxLength={8}
                           />
                         </td>
                       ))
                     }
                     <td>
-                      <label>
-                        <input type="checkbox" name="isTimeOff" checked={isTimeOff} onChange={event => ::this.setValue(event, index)}/>
-                      </label>
+                      <input
+                        type="text"
+                        readOnly={true}
+                        value={late ? (moment.duration(late, 'seconds').asHours()).toFixed(1) : ''}
+                      />
+                    </td>
+                    <td>
+                      {
+                        !isWeekend ?
+                          <label>
+                            <input type="checkbox" name="isTimeOff" checked={isTimeOff} onChange={event => ::this.setValue(event, index)}/>
+                          </label> : null
+                      }
                     </td>
                   </tr>
                 );

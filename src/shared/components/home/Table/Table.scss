@@ -15,6 +15,12 @@
       span {
         color: #000;
         font-size: vw(18px, $desktop);
+        &.green {
+          color: darkgreen;
+        }
+        &.red {
+          color: darkred;
+        }
       }
     }
   }
@@ -23,6 +29,13 @@
     justify-content: space-between;
     align-items: center;
     padding: vw(10px, $desktop) 0;
+    .select-container {
+      select {
+        height: vw(40px, $desktop);
+        font-family: RobotoSlab, sans-serif;
+        font-size: vw(16px, $desktop);
+      }
+    }
     button {
       font-size: vw(16px, $desktop);
       font-family: RobotoSlab, sans-serif;
@@ -57,10 +70,13 @@
       background-color: #f1f1f1;
       tr {
         &.weekend {
-          background-color: #e0dad6;
+          background-color: #cae0c0;
         }
         &.current-date {
           background-color: #dcdcdc;
+        }
+        &.timeoff {
+          background-color: #e0c5c1;
         }
         td {
           padding: 0;
@@ -75,6 +91,9 @@
             background-color: transparent;
             font-family: RobotoSlab, sans-serif;
             font-size: vw(16px, $desktop);
+            &:read-only {
+              cursor: not-allowed;
+            }
           }
           label {
             width: 100%;
