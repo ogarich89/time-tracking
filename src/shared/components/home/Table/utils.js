@@ -8,7 +8,7 @@ const getSettings = (monthAndYear = getCurrentMonth()) => {
   const days = momentMonthAndYear.daysInMonth();
   const dates = [];
   for(let i = 1; i <= days; ++i) {
-    const date = `${moment(i, 'D').format('DD')}.${monthAndYear}`;
+    const date = `${moment(`${i}.${monthAndYear}`, 'D.MM.YYYY').format('DD')}.${monthAndYear}`;
     const nameDay = moment(date, DATE_FORMAT).format('dddd');
     const isWeekend = { 'Saturday': true, 'Sunday': true }[nameDay];
     dates.push({
@@ -18,9 +18,10 @@ const getSettings = (monthAndYear = getCurrentMonth()) => {
       _hours: isWeekend ? 0 : 9
     });
   }
-  let data = [];
+  let data = [], wage = 0;
   try {
-    data = JSON.parse(localStorage.getItem(monthAndYear));
+    data = JSON.parse(localStorage.getItem(monthAndYear)) || [];
+    wage = +localStorage.getItem('wage') || 0;
   } catch (e) {
     console.error(e);
   }
@@ -28,16 +29,20 @@ const getSettings = (monthAndYear = getCurrentMonth()) => {
     arr[index] = { ...date, ...data[index] };
   });
   const [ month, year ] = monthAndYear.split('.');
+  const amountHours = getAmountOfHours(dates);
+  const workedHours = getWorkedHours(dates);
   return {
     dates,
-    amountHours: getAmountOfHours(dates),
-    workedHours: getWorkedHours(dates),
+    amountHours,
+    workedHours,
     currentHours: isFuture ? 0 : getCurrentMomentHours(dates),
     nameMonth: moment(monthAndYear, 'MM.YYYY').locale('ru').format('MMMM'),
     months: getMonths(),
     month,
     year,
-    isFuture
+    isFuture,
+    earned: getEarned({ wage, amountHours, workedHours }),
+    wage
   };
 };
 
@@ -114,23 +119,33 @@ const getLateHours = ({ lunch_from, lunch_to }) => {
   return late;
 };
 
+const getEarned = ({ wage, amountHours, workedHours }) => {
+  const workHour = Math.round(+wage / amountHours);
+  return +workedHours * workHour;
+};
+
 const updateSettings = (dates, options) => {
-  const { id, isFuture = false } = options;
+  const { id, isFuture = false, wage } = options;
   const data = dates.map(({ checkIn, checkOut, isTimeOff, isHoliday, lunch_to, lunch_from }) => {
     return { checkIn, checkOut, isTimeOff, isHoliday, lunch_to, lunch_from };
   });
   try {
     localStorage.setItem(id, JSON.stringify(data));
+    localStorage.setItem('wage', JSON.stringify(wage));
   } catch (e) {
     console.error(e);
   }
+  const amountHours = getAmountOfHours(dates);
+  const workedHours = getWorkedHours(dates);
 
   return {
-    amountHours: getAmountOfHours(dates),
+    amountHours,
     currentHours: isFuture ? 0 : getCurrentMomentHours(dates),
     dates,
-    workedHours: getWorkedHours(dates)
+    workedHours,
+    earned: getEarned({ wage, amountHours, workedHours }),
+    wage
   };
 };
 
-export { getSettings, getClone, updateSettings, getLateHours };
+export { getSettings, getClone, updateSettings, getLateHours, getEarned };

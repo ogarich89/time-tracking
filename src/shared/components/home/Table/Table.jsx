@@ -14,10 +14,24 @@ class Table extends Component {
   }
 
   componentDidMount () {
+    this.initMask();
+    new IMask(this.wageInput, {
+      mask: Number,
+      thousandsSeparator: ' ',
+      min: 0,
+      max: 1000000
+    });
+  }
+
+  componentDidUpdate() {
+    this.updateMask();
+  }
+
+  initMask() {
     const inputs = document.getElementsByClassName('js-input');
     const DATE_FORMAT = 'HH:mm:ss';
-    Array.from(inputs).forEach(input => {
-      new IMask(input, {
+    this.inputCollections = Array.from(inputs).map(input => {
+      return new IMask(input, {
         mask: Date,
         pattern: DATE_FORMAT,
         blocks: {
@@ -43,6 +57,11 @@ class Table extends Component {
     });
   }
 
+  updateMask = () => {
+    this.inputCollections.forEach(input => input.destroy());
+    this.initMask();
+  };
+
   setMonth({ target: { value: month } = {} }) {
     const { year } = this.state;
     this.setState({
@@ -58,11 +77,19 @@ class Table extends Component {
   }
 
   setValue({ target }, index) {
-    const { month, year, isFuture } = this.state;
+    const { month, year, isFuture, wage } = this.state;
     const dates = getClone(this.state.dates);
     dates[index][target.name] = target.type === 'text' ? target.value : target.checked;
     this.setState({
-      ...updateSettings(dates, { id: `${month}.${year}`, isFuture })
+      ...updateSettings(dates, { id: `${month}.${year}`, isFuture, wage })
+    });
+  }
+
+  setWage({ target: { value } = {} }) {
+    const wage = +value.replace(' ', '');
+    const { dates, month, year, isFuture } = this.state;
+    this.setState({
+      ...updateSettings(dates, { id: `${month}.${year}`, isFuture, wage })
     });
   }
 
@@ -75,7 +102,9 @@ class Table extends Component {
       months,
       month,
       year,
-      workedHours = '0.0'
+      workedHours = '0.0',
+      earned,
+      wage
     } = this.state;
     return (
       <section className={style.table}>
@@ -86,6 +115,7 @@ class Table extends Component {
           <li>Отработано: <span className={cx(style.green, {
             [style.red]: workedHours < currentHours
           })}>{ workedHours } ч.</span></li>
+          <li>Заработано: <span>{ earned.toLocaleString() }</span></li>
         </ul>
         <div className={style.dashboard}>
           <div className={style.selectContainer}>
@@ -104,7 +134,15 @@ class Table extends Component {
               }
             </select>
           </div>
-          <button>Редактировать</button>
+          <div className={style.inputContainer}>
+            <input
+              type="text"
+              placeholder="Ваша ЗП"
+              ref={input => this.wageInput = input}
+              onInput={::this.setWage}
+              defaultValue={wage}
+            />
+          </div>
         </div>
         <table>
           <thead>
